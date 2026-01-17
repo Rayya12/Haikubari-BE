@@ -1,10 +1,8 @@
 from fastapi import FastAPI
-from app.controller.authController import router as auth_router
-from app.model.db import get_async_session
-from fastapi.params import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from app.model.db import init_db
+from app.schema.authSchema import UserRead, UserCreate, UserUpdate
+from app.users import auth_backend, current_active_user,fastapi_users
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -12,14 +10,16 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(fastapi_users.get_auth_router(auth_backend),prefix='/auth/jwt',tags=["auth"])
+app.include_router(fastapi_users.get_register_router(UserRead,UserCreate),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_reset_password_router(),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_verify_router(UserRead),prefix="/auth",tags=["auth"])
+app.include_router(fastapi_users.get_users_router(UserRead,UserUpdate),prefix="/users",tags=["users"])
+
+
 
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
-
-
-app.include_router(auth_router)
-
-
 
 
