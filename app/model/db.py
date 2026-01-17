@@ -28,6 +28,11 @@ class RoleEnum(enum.Enum):
     common = "common"
     watcher = "watcher"
     admin = "admin"
+    
+class WathcherEnum(enum.Enum):
+    pending = "pending"
+    suspended = "suspended"
+    accepted = "accepted"
 
 class User(Base):
     __tablename__ = "users"
@@ -39,6 +44,7 @@ class User(Base):
     role = Column(Enum(RoleEnum,name="role_enum"), default=RoleEnum.common, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_verfied = Column(Boolean, default=False)
+    status = Column(Enum(WathcherEnum,name="watcher_enum"),default=WathcherEnum.pending,nullable=False)
     
     # Additional profile fields
     photo_url = Column(String, nullable=True)
@@ -69,6 +75,13 @@ class Haiku(Base):
     likes = Column(Numeric, default=0)
     
     user = relationship("User", back_populates="haikus")
+    
+class OTP(Base):
+    __tablename__ = "otps"
+    id = Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True),ForeignKey("users.id",ondelete="CASCADE"))
+    code = Column(String,nullable=False)
+    expired_at = Column(DateTime,nullable=False)
     
 engine = create_async_engine(DATABASE_URL, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
