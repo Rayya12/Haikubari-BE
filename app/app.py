@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from app.model.db import init_db
 from app.schema.authSchema import UserRead, UserCreate, UserUpdate
 from app.users import auth_backend, current_active_user,fastapi_users
+from app.router.otp import router as otp_router
+from app.router.health import router as health_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,6 +17,10 @@ app.include_router(fastapi_users.get_register_router(UserRead,UserCreate),prefix
 app.include_router(fastapi_users.get_reset_password_router(),prefix="/auth",tags=["auth"])
 app.include_router(fastapi_users.get_verify_router(UserRead),prefix="/auth",tags=["auth"])
 app.include_router(fastapi_users.get_users_router(UserRead,UserUpdate),prefix="/users",tags=["users"])
+app.include_router(otp_router)
+app.include_router(health_router)
+
+
 
 
 
