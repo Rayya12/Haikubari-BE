@@ -8,7 +8,7 @@ from typing import AsyncGenerator
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 
-from sqlalchemy import Column, ForeignKey, String, Text, DateTime, Enum, Numeric
+from sqlalchemy import Column, ForeignKey, String, Text, DateTime, Enum, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
@@ -49,7 +49,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     file_type = Column(String, nullable=True)
 
     bio = Column(Text, nullable=True)
-    age = Column(Numeric, nullable=True)
+    age = Column(Integer, nullable=True)
     address = Column(String, nullable=True)
 
     haikus = relationship(
@@ -75,7 +75,7 @@ class Haiku(Base):
     content = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    likes = Column(Numeric, default=0)
+    likes = Column(Integer, default=0)
 
     user = relationship("User", back_populates="haikus")
 
@@ -84,9 +84,9 @@ class OTP(Base):
     __tablename__ = "otps"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
     code = Column(String, nullable=False)
-    expired_at = Column(DateTime, nullable=False)
+    expired_at = Column(DateTime(timezone=True), nullable=False)
 
 
 engine = create_async_engine(DATABASE_URL, echo=True,connect_args={
