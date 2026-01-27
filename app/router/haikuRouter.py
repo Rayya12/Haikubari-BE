@@ -10,8 +10,7 @@ router = APIRouter(prefix="/haiku", tags=["haiku"])
 
 @router.post("/create")
 async def createHaiku(haiku:HaikuPost,user=Depends(current_verified_user),session: AsyncSession = Depends(get_async_session)):
-    new_haiku = Haiku(**haiku.model_dump())
-    new_haiku.user_id = user.id
+    new_haiku = Haiku(**haiku.model_dump(), user_id=user.id)
     session.add(new_haiku)
     await session.commit()
     await session.refresh(new_haiku)
