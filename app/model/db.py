@@ -71,8 +71,10 @@ class Haiku(Base):
         nullable=False,
         index=True
     )
-
-    content = Column(String(255), nullable=False)
+    title = Column(String(15), nullable=False)
+    hashigo = Column(String(5), nullable=False)
+    nakasichi = Column(String(7), nullable=False)
+    shimogo = Column(String(5), nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     likes = Column(Integer, default=0)
