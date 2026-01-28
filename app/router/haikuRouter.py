@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Query
 from app.users import current_verified_user
 from app.schema.haikuSchema import HaikuPost
 from app.model.db import Haiku, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select,func,asc,desc
 
 
 
-router = APIRouter(prefix="/haiku", tags=["haiku"])
+router = APIRouter(prefix="/haikus", tags=["haiku"])
 
 @router.post("/create")
 async def createHaiku(haiku:HaikuPost,user=Depends(current_verified_user),session: AsyncSession = Depends(get_async_session)):
@@ -17,4 +18,71 @@ async def createHaiku(haiku:HaikuPost,user=Depends(current_verified_user),sessio
     return {
         "ok":True,
         "haiku":new_haiku
+}
+
+PAGE_SIZE_DEFAULT = 6
+PAGE_SIZE_MAX = 30
+
+
+
+@router.get("/my-haikus")
+async def  get_haiku_from_id_for_page(session : AsyncSession = Depends(get_async_session),user=Depends(current_verified_user),
+                                      page:int = Query(1,ge=1),
+                                      page_size: int = Query(PAGE_SIZE_DEFAULT,ge=1,le=PAGE_SIZE_MAX),
+                                      q:str | None =Query(None,description="俳句を探す"),
+                                      sort: str = Query("created_at", regex="^(created_at|likes)$"),
+                                      order: str = Query("desc", regex="^(asc|desc)$"),):
+    
+    id = user.id
+    
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="普通役しか使えません")
+    
+    # offset untuk page 1 = 0, page 2 = 6, dst
+    offset = (page - 1)*page_size
+    
+    conditions = [Haiku.user_id == id]
+    
+    if q:
+        conditions.append(Haiku.hashigo(f"%{q}"))
+        conditions.append(Haiku.nakasichi.ilike(f"%{q}%"))
+        conditions.append(Haiku.shimogo.ilike(f"%{q}"))
+        conditions.append(Haiku.title.ilike(f"%{q}"))
+    
+    sort_map = {
+        "created_at":Haiku.created_at,
+        "likes":Haiku.likes
     }
+    
+    sort_column = sort_map.get(sort)
+    order_fn = desc if order == "desc" else asc
+    
+    # total count
+    total = await session.scalar(
+        select(func.count()).select_from(Haiku).where(*conditions)
+    )
+    
+    stmt = (select(Haiku).where(*conditions).order_by(order_fn(sort_column)).offset(offset).limit(page_size))
+    
+    result = await session.execute(stmt)
+    items = result.scalars().all()
+    
+    return {
+        "page": page,
+        "page_size": page_size,
+        "q": q,
+        "sort": sort,
+        "order": order,
+        "total": total,
+        "total_pages": (total + page_size - 1) // page_size if total else 0,
+        "items": items,
+    }
+    
+    
+        
+    
+    
+    
+    
+    
+    
