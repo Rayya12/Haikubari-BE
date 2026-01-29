@@ -3,7 +3,7 @@ from app.users import current_verified_user
 from app.schema.haikuSchema import HaikuPost
 from app.model.db import Haiku, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,func,asc,desc
+from sqlalchemy import or_, select,func,asc,desc
 
 
 
@@ -44,11 +44,11 @@ async def  get_haiku_from_id_for_page(session : AsyncSession = Depends(get_async
     conditions = [Haiku.user_id == id]
     
     if q:
-        conditions.append(Haiku.hashigo(f"%{q}"))
-        conditions.append(Haiku.nakasichi.ilike(f"%{q}%"))
-        conditions.append(Haiku.shimogo.ilike(f"%{q}"))
-        conditions.append(Haiku.title.ilike(f"%{q}"))
-    
+        conditions.append(or_(Haiku.hashigo.ilike(f"%{q}%"),
+        Haiku.nakasichi.ilike(f"%{q}%"),
+        Haiku.shimogo.ilike(f"%{q}%"),
+        Haiku.title.ilike(f"%{q}%")))
+
     sort_map = {
         "created_at":Haiku.created_at,
         "likes":Haiku.likes
@@ -62,7 +62,7 @@ async def  get_haiku_from_id_for_page(session : AsyncSession = Depends(get_async
         select(func.count()).select_from(Haiku).where(*conditions)
     )
     
-    stmt = (select(Haiku).where(*conditions).order_by(order_fn(sort_column)).offset(offset).limit(page_size))
+    stmt = (select(Haiku).where(*conditions).order_by(order_fn(sort_column),Haiku.id).offset(offset).limit(page_size))
     
     result = await session.execute(stmt)
     items = result.scalars().all()
