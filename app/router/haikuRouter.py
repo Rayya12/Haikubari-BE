@@ -20,8 +20,55 @@ async def createHaiku(haiku:HaikuPost,user=Depends(current_verified_user),sessio
         "haiku":new_haiku
 }
 
-PAGE_SIZE_DEFAULT = 6
+PAGE_SIZE_DEFAULT = 8
 PAGE_SIZE_MAX = 30
+
+@router.get("/")
+async def get_all_haiku(session:AsyncSession = Depends(get_async_session),user=Depends(current_verified_user),
+                        page:int = Query(1,ge=1),
+                        page_size:int = Query(PAGE_SIZE_DEFAULT,ge=1,le=PAGE_SIZE_MAX),
+                        q:str | None = Query(None,description="俳句を探す"),
+                        sort:str = Query("created_at",regex="^(created_at|likes)$"),
+                        order:str = Query("desc",regex="^(asc|desc)$")):
+    
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="普通ユーザー以外はできません")
+    
+    offset = (page-1)*page_size
+    
+    condition = []
+    
+    if q:
+        condition.append(or_(Haiku.title.ilike(f"%{q}%"),
+                             Haiku.shimogo.ilike(f"%{q}%"),
+                             Haiku.nakasichi.ilike(f"%{q}%"),
+                             Haiku.shimogo.ilike(f"%{q}%")))
+        
+        sort_map = {
+            "created_at":Haiku.created_at,
+            "likes":Haiku.likes
+        }
+        
+        sort_columns = sort_map.get(sort)
+        order_fn = desc if order == "desc" else asc
+        
+        total = await session.scalar(select(func.count()).select_from(Haiku).where(*condition))
+        
+        stmt = (select(Haiku).where(*condition).order_by(order_fn(sort_columns)).offset(offset).limit(page_size))
+        
+        result = await session.execute(stmt)
+        items = result.scalars().all()
+        
+        return ({
+            "page":page,
+            "page_size":page_size,
+            "q":q,
+            "sort":sort,
+            "total":total,
+            "order":order,
+            "total_pages" : (total+page_size-1) // page_size if total else 0,
+            "items" : items
+        })
 
 
 
@@ -78,6 +125,8 @@ async def  get_haiku_from_id_for_page(session : AsyncSession = Depends(get_async
         "items": items,
     }
     
+    
+
     
         
     
