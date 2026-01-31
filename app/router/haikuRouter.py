@@ -40,26 +40,26 @@ async def get_all_haiku(session:AsyncSession = Depends(get_async_session),user=D
     
     if q:
         condition.append(or_(Haiku.title.ilike(f"%{q}%"),
-                             Haiku.shimogo.ilike(f"%{q}%"),
+                             Haiku.hashigo.ilike(f"%{q}%"),
                              Haiku.nakasichi.ilike(f"%{q}%"),
                              Haiku.shimogo.ilike(f"%{q}%")))
         
-        sort_map = {
-            "created_at":Haiku.created_at,
+    sort_map = {
+        "created_at":Haiku.created_at,
             "likes":Haiku.likes
         }
         
-        sort_columns = sort_map.get(sort)
-        order_fn = desc if order == "desc" else asc
+    sort_columns = sort_map.get(sort)
+    order_fn = desc if order == "desc" else asc
         
-        total = await session.scalar(select(func.count()).select_from(Haiku).where(*condition))
+    total = await session.scalar(select(func.count()).select_from(Haiku).where(*condition))
         
-        stmt = (select(Haiku).where(*condition).order_by(order_fn(sort_columns)).offset(offset).limit(page_size))
+    stmt = (select(Haiku).where(*condition).order_by(order_fn(sort_columns)).offset(offset).limit(page_size))
         
-        result = await session.execute(stmt)
-        items = result.scalars().all()
+    result = await session.execute(stmt)
+    items = result.scalars().all()
         
-        return ({
+    return ({
             "page":page,
             "page_size":page_size,
             "q":q,
