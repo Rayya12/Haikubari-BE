@@ -8,7 +8,7 @@ from typing import AsyncGenerator
 from fastapi import Depends
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
 
-from sqlalchemy import Column, ForeignKey, String, Text, DateTime, Enum, Integer
+from sqlalchemy import Column, ForeignKey, String, Text, DateTime, Enum, Integer, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
@@ -58,6 +58,29 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+    reviews = relationship(
+        "Review",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+    
+    
+class Review(Base):
+    __tablename__ = "reviews"
+    id = Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id",ondelete="CASCADE"), nullable=False, index=True),
+    haiku_id = Column(UUID(as_uuid=True), ForeignKey("haikus.id",ondelete="CASCADE"),nullable=False, index= True)
+    likes = Column(Integer,default=0)
+    content = Column(Text,nullable=False)
+    
+    __table_args__ = (
+        CheckConstraint('likes >= 0', name='check_likes_non_negative'),
+        CheckConstraint("char_length(content) <= 300",name="content max 300")
+    )
+    
+    user = relationship("User",back_populates="reviews")
+    haiku = relationship("Haiku",back_populates="reviews")
 
 
 class Haiku(Base):
@@ -80,6 +103,7 @@ class Haiku(Base):
     likes = Column(Integer, default=0)
 
     user = relationship("User", back_populates="haikus")
+    reviews = relationship("Review",back_populates="haiku",cascade="all, delete-orphan",passive_deletes=True)
 
 
 class OTP(Base):
