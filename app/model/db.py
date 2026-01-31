@@ -69,7 +69,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 class Review(Base):
     __tablename__ = "reviews"
     id = Column(UUID(as_uuid=True),primary_key=True,default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id",ondelete="CASCADE"), nullable=False, index=True),
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id",ondelete="CASCADE"), nullable=False, index=True)
     haiku_id = Column(UUID(as_uuid=True), ForeignKey("haikus.id",ondelete="CASCADE"),nullable=False, index= True)
     likes = Column(Integer,default=0)
     content = Column(Text,nullable=False)

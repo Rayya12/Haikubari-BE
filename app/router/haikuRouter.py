@@ -69,6 +69,8 @@ async def get_all_haiku(session:AsyncSession = Depends(get_async_session),user=D
             "total_pages" : (total+page_size-1) // page_size if total else 0,
             "items" : items
         })
+    
+
 
 
 
@@ -125,6 +127,17 @@ async def  get_haiku_from_id_for_page(session : AsyncSession = Depends(get_async
         "items": items,
     }
     
+    
+@router.get("/{id}")
+async def get_haiku_with_id(id :str,session:AsyncSession = Depends(get_async_session),user=Depends(current_verified_user)):
+    if not user.role == "common":
+        raise HTTPException(status_code=403,detail="普通役しか使えません")
+    
+    result = await session.scalar(select(Haiku).where(Haiku.id == id))
+    if not result:
+        raise HTTPException(status_code=404, detail="俳句が見つかりません")
+
+    return result
     
 
     
