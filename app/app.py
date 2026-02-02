@@ -6,6 +6,7 @@ from app.users import auth_backend, current_active_user,fastapi_users
 from app.router.otp import router as otp_router
 from app.router.health import router as health_router
 from app.router.haikuRouter import router as haiku_router
+from app.router.reviewRouter import router as review_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +22,7 @@ app.include_router(fastapi_users.get_users_router(UserRead,UserUpdate),prefix="/
 app.include_router(otp_router)
 app.include_router(health_router)
 app.include_router(haiku_router)
+app.include_router(review_router)
 
 
 

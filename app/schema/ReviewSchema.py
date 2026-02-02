@@ -3,6 +3,6 @@ import uuid
 
 class createReview(BaseModel):
     haiku_id : uuid.UUID
-    text : str = Field(...,max_length=100)
+    content: str = Field(...,max_length=100)
 
 
