@@ -11,6 +11,8 @@ router = APIRouter(prefix="/haikus", tags=["haiku"])
 
 @router.post("/create")
 async def createHaiku(haiku:HaikuPost,user=Depends(current_verified_user),session: AsyncSession = Depends(get_async_session)):
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="普通役しか使えません")
     new_haiku = Haiku(**haiku.model_dump(), user_id=user.id)
     session.add(new_haiku)
     await session.commit()
