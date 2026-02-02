@@ -140,6 +140,54 @@ async def get_haiku_with_id(id :str,session:AsyncSession = Depends(get_async_ses
         raise HTTPException(status_code=404, detail="俳句が見つかりません")
 
     return result
+
+@router.patch("/{id}/likes")
+async def likesHaiku(id:str,user = Depends(current_verified_user),session:AsyncSession = Depends(get_async_session)):
+    
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="まだログインしませんね、ログインしてください")
+    
+    result = await session.scalar(select(Haiku).where(Haiku.id == id))
+    result.likes = result.likes + 1
+    
+    session.add(result)
+    await session.commit()
+    await session.refresh(result)
+    
+    return {
+        "ok":True,
+        "result":result
+    }
+    
+@router.patch("/{id}/unlikes")
+async def unlikesHaiku(id:str,user=Depends(current_verified_user),session:AsyncSession = Depends(get_async_session)):
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="まだログインしませんね、ログインしてください")
+    
+    result = await session.scalar(select(Haiku).where(Haiku.id == id))
+    
+    if (result.likes <= 0):
+        raise HTTPException(status_code=400,detail="いいね回数はゼロ以下はできません")
+    
+    result.likes = result.likes - 1
+    
+    session.add(result)
+    await session.commit()
+    await session.refresh(result)
+    
+    return {
+        "ok":True,
+        "result":result
+    }
+    
+    
+    
+    
+
+
+
+
+    
     
 
     
