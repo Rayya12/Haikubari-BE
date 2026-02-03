@@ -51,6 +51,8 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     bio = Column(Text, nullable=True)
     age = Column(Integer, nullable=True)
     address = Column(String, nullable=True)
+    
+    likestable = relationship("Like",back_populates="users",cascade="all, delete-orphan",passive_deletes=True)
 
     haikus = relationship(
         "Haiku",
@@ -104,6 +106,7 @@ class Haiku(Base):
 
     user = relationship("User", back_populates="haikus")
     reviews = relationship("Review",back_populates="haiku",cascade="all, delete-orphan",passive_deletes=True)
+    likestable = relationship("Like",back_populates="haikus",cascade="all, delete-orphan",passive_deletes=True) 
 
 
 class OTP(Base):
@@ -113,6 +116,14 @@ class OTP(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
     code = Column(String, nullable=False)
     expired_at = Column(DateTime(timezone=True), nullable=False)
+    
+class Like(Base):
+    __tablename__ = "likes"
+    user_id = Column(UUID(as_uuid=True),ForeignKey("users.id",ondelete="CASCADE"),primary_key=True,index=True,nullable=False)
+    haiku_id = Column(UUID(as_uuid=True),ForeignKey("haikus.id",ondelete="CASCADE"),primary_key=True,index=True,nullable=False)
+    
+    users = relationship("User",back_populates="likestable")
+    haikus = relationship("Haiku",back_populates="likestable")
 
 
 engine = create_async_engine(DATABASE_URL, echo=True,connect_args={

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException,Query
 from app.users import current_verified_user
 from app.schema.haikuSchema import HaikuPost
-from app.model.db import Haiku, get_async_session
+from app.model.db import Haiku, get_async_session,Like
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
 
@@ -147,12 +147,24 @@ async def likesHaiku(id:str,user = Depends(current_verified_user),session:AsyncS
     if not (user.role == "common"):
         raise HTTPException(status_code=403,detail="まだログインしませんね、ログインしてください")
     
+    new_like = Like(user_id = user.id,haiku_id = id)
+    try:
+        session.add(new_like)
+        await session.commit()
+        await session.refresh(new_like)
+    except Exception:
+        raise HTTPException(status_code=400,detail="いいねすることができません")
+        
+    
+    
     result = await session.scalar(select(Haiku).where(Haiku.id == id))
     result.likes = result.likes + 1
     
     session.add(result)
     await session.commit()
     await session.refresh(result)
+    
+    
     
     return {
         "ok":True,
@@ -163,6 +175,13 @@ async def likesHaiku(id:str,user = Depends(current_verified_user),session:AsyncS
 async def unlikesHaiku(id:str,user=Depends(current_verified_user),session:AsyncSession = Depends(get_async_session)):
     if not (user.role == "common"):
         raise HTTPException(status_code=403,detail="まだログインしませんね、ログインしてください")
+    
+    new_unlike = Like(user_id = user.id,haiku_id = id)
+    try:
+        session.delete(new_unlike)
+        await session.commit()
+    except Exception:
+        raise HTTPException(status_code=400,detail="いいねを消すことができません")
     
     result = await session.scalar(select(Haiku).where(Haiku.id == id))
     
