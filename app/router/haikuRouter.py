@@ -164,40 +164,41 @@ async def likesHaiku(id:str,user = Depends(current_verified_user),session:AsyncS
     await session.commit()
     await session.refresh(result)
     
-    
-    
     return {
         "ok":True,
         "result":result
     }
     
-@router.patch("/{id}/unlikes")
-async def unlikesHaiku(id:str,user=Depends(current_verified_user),session:AsyncSession = Depends(get_async_session)):
-    if not (user.role == "common"):
-        raise HTTPException(status_code=403,detail="まだログインしませんね、ログインしてください")
-    
-    new_unlike = Like(user_id = user.id,haiku_id = id)
-    try:
-        session.delete(new_unlike)
-        await session.commit()
-    except Exception:
-        raise HTTPException(status_code=400,detail="いいねを消すことができません")
-    
-    result = await session.scalar(select(Haiku).where(Haiku.id == id))
-    
-    if (result.likes <= 0):
-        raise HTTPException(status_code=400,detail="いいね回数はゼロ以下はできません")
-    
-    result.likes = result.likes - 1
-    
-    session.add(result)
+@router.delete("/{id}/unlikes")
+async def unlikesHaiku(
+    id: str,
+    user=Depends(current_verified_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    if user.role != "common":
+        raise HTTPException(status_code=403, detail="まだログインしませんね、ログインしてください")
+
+    like_obj = await session.scalar(
+        select(Like).where(Like.user_id == user.id, Like.haiku_id == id)
+    )
+    haiku = await session.scalar(select(Haiku).where(Haiku.id == id))
+
+    if not haiku:
+        raise HTTPException(status_code=404, detail="俳句が見つかりません")
+
+    if not like_obj:
+        raise HTTPException(status_code=404, detail="いいねが見つかりません")
+
+    if haiku.likes <= 0:
+        raise HTTPException(status_code=400, detail="いいね回数はゼロ以下はできません")
+
+    haiku.likes -= 1
+    await session.delete(like_obj)   # no await
+
     await session.commit()
-    await session.refresh(result)
-    
-    return {
-        "ok":True,
-        "result":result
-    }
+    await session.refresh(haiku)
+
+    return {"ok": True, "result": haiku}
     
     
     
