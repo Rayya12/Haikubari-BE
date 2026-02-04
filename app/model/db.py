@@ -74,6 +74,7 @@ class Review(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id",ondelete="CASCADE"), nullable=False, index=True)
     haiku_id = Column(UUID(as_uuid=True), ForeignKey("haikus.id",ondelete="CASCADE"),nullable=False, index= True)
     likes = Column(Integer,default=0)
+    created_at = Column(DateTime,default=datetime.datetime.utcnow)
     content = Column(Text,nullable=False)
     
     __table_args__ = (
