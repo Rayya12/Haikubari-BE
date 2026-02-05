@@ -32,7 +32,14 @@ async def getReviewbyId(id:str,user = Depends(current_verified_user),session:Asy
     result = await session.execute(select(Review).where(Review.haiku_id == id))
     data = result.scalars().all()
     
-    return data
+    return {
+        "reviews" : data
+    }
+
+
+
+
+
     
     
     
