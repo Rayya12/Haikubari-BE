@@ -4,6 +4,7 @@ from app.schema.haikuSchema import HaikuPost
 from app.model.db import Haiku, get_async_session,Like
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
+from uuid import UUID
 
 
 
@@ -225,7 +226,26 @@ async def editHaiku(id:str,hakupost:HaikuPost,session:AsyncSession=Depends(get_a
     
     return haiku
 
+@router.delete("/{id}")
+async def deleteHaiku(id:UUID,session:AsyncSession = Depends(get_async_session),user=Depends(current_verified_user)):
+    if not user.role == "common":
+        raise HTTPException(status_code=403,detail="普通の役しか使得ません")
     
+    
+    selectedHaiku = await session.scalar(select(Haiku).where(Haiku.id == id))
+    
+    if not selectedHaiku:
+        raise HTTPException(status_code=404,detail="俳句が見つかりませんでした")
+    
+    if selectedHaiku.user_id != user.id:
+        raise HTTPException(status_code=403,detail="これはあなたの俳句ではありませんね")
+    
+    await session.delete(selectedHaiku)
+    await session.commit()
+
+    return {
+        "ok":True
+    }
     
         
     
