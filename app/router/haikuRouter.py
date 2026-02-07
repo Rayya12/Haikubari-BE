@@ -199,6 +199,35 @@ async def unlikesHaiku(
     await session.refresh(haiku)
 
     return {"ok": True, "result": haiku}
+
+
+@router.patch("/{id}/edit")
+async def editHaiku(id:str,hakupost:HaikuPost,session:AsyncSession=Depends(get_async_session),user = Depends(current_verified_user)):
+    if not (user.role == "common"):
+        raise HTTPException(status_code=403,detail="普通の役しか使いません")
+    
+    haiku = await session.scalar(select(Haiku).where(Haiku.id == id))
+    
+    if not haiku:
+        raise HTTPException(status_code=404,detail= "探している俳句は見つかりません")
+    
+    if haiku.user_id != user.id:
+        raise HTTPException(status_code=400,detail="これはあなたの俳句ではありませんね")
+    
+    haiku.title = hakupost.title
+    haiku.shimogo = hakupost.shimogo
+    haiku.nakasichi = hakupost.nakasichi
+    haiku.hashigo = hakupost.hashigo
+    haiku.description = hakupost.description
+    
+    await session.commit()
+    await session.refresh(haiku)
+    
+    return haiku
+
+    
+    
+        
     
     
     
