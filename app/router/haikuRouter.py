@@ -140,7 +140,10 @@ async def get_haiku_with_id(id :str,session:AsyncSession = Depends(get_async_ses
     if not result:
         raise HTTPException(status_code=404, detail="俳句が見つかりません")
 
-    return result
+    return {
+        "haiku" : result,
+        "isMine" : result.user_id == user.id
+    }
 
 @router.patch("/{id}/likes")
 async def likesHaiku(id:str,user = Depends(current_verified_user),session:AsyncSession = Depends(get_async_session)):
@@ -203,7 +206,7 @@ async def unlikesHaiku(
 
 
 @router.patch("/{id}/edit")
-async def editHaiku(id:str,hakupost:HaikuPost,session:AsyncSession=Depends(get_async_session),user = Depends(current_verified_user)):
+async def editHaiku(id:UUID,hakupost:HaikuPost,session:AsyncSession=Depends(get_async_session),user = Depends(current_verified_user)):
     if not (user.role == "common"):
         raise HTTPException(status_code=403,detail="普通の役しか使いません")
     
