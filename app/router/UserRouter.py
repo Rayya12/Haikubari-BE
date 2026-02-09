@@ -1,0 +1,60 @@
+from fastapi import APIRouter,Depends,HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.model.db import get_async_session,User
+from app.users import current_verified_user
+from sqlalchemy import select
+from app.schema.UserSchema import UserUpdate
+
+
+router = APIRouter(prefix="/users",tags=["users"])
+
+
+@router.get("/me")
+async def getMe(session:AsyncSession = Depends(get_async_session),user = Depends(current_verified_user)):
+    
+    response =  await session.execute(select(User).where(user.id == User.id))
+    selected_user = response.scalars().one()
+    
+    if (not selected_user):
+        raise HTTPException(status_code=404,detail="ユーザーが見つかりません")
+    
+    return {
+        "username" : selected_user.username,
+        "photo_url" : selected_user.photo_url,
+        "file_name" : selected_user.file_name,
+        "file_type" : selected_user.file_type,
+        "bio": selected_user.bio,
+        "age": selected_user.age,
+        "address" : selected_user.address
+    }
+    
+@router.patch("/me")
+async def patchme(userUpdate:UserUpdate,session:AsyncSession = Depends(get_async_session),user= Depends(current_verified_user)):
+    response = await session.execute(select(User).where(user.id == User.id))
+    selected_user = response.scalars().one()
+    
+    if (not selected_user):
+        raise HTTPException(status_code=404,detail="ユーザーが見つかりません")
+    
+    if userUpdate.username:
+        selected_user.username = userUpdate.username
+    
+    if userUpdate.photo_url:
+        selected_user.photo_url = userUpdate.photo_url
+        
+    if userUpdate.file_name:
+        selected_user.file_name = userUpdate.file_name
+    
+    if userUpdate.file_type:    
+        selected_user.file_type = userUpdate.file_type
+        
+    if userUpdate.bio:    
+        selected_user.bio = userUpdate.bio
+    
+    if userUpdate.age:    
+        selected_user.age = userUpdate.age
+    
+    if userUpdate.address:
+        selected_user.address = userUpdate.address
+        
+    await session.commit()

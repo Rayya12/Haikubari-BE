@@ -8,6 +8,7 @@ from app.router.health import router as health_router
 from app.router.haikuRouter import router as haiku_router
 from app.router.reviewRouter import router as review_router
 from app.router.likeRouter import router as like_router
+from app.router.UserRouter import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,12 +20,12 @@ app.include_router(fastapi_users.get_auth_router(auth_backend),prefix='/auth/jwt
 app.include_router(fastapi_users.get_register_router(UserRead,UserCreate),prefix="/auth",tags=["auth"])
 app.include_router(fastapi_users.get_reset_password_router(),prefix="/auth",tags=["auth"])
 app.include_router(fastapi_users.get_verify_router(UserRead),prefix="/auth",tags=["auth"])
-app.include_router(fastapi_users.get_users_router(UserRead,UserUpdate),prefix="/users",tags=["users"])
 app.include_router(otp_router)
 app.include_router(health_router)
 app.include_router(haiku_router)
 app.include_router(review_router)
 app.include_router(like_router)
+app.include_router(user_router)
 
 
 

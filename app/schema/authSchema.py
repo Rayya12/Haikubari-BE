@@ -19,4 +19,11 @@ class UserCreate(schemas.BaseUserCreate):
     age: int = Field(default=1,ge=1)
     
 class UserUpdate(schemas.BaseUserUpdate):
-    pass
+    username:str
+    photo_url:str | None
+    file_name : str | None
+    file_type : Literal["image"] | None
+    bio : str | None
+    age: int = Field(default=1,ge=1)
+    address : str | None
+    
