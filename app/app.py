@@ -9,6 +9,7 @@ from app.router.haikuRouter import router as haiku_router
 from app.router.reviewRouter import router as review_router
 from app.router.likeRouter import router as like_router
 from app.router.UserRouter import router as user_router
+from app.router.imageRouter import router as image_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,6 +27,7 @@ app.include_router(haiku_router)
 app.include_router(review_router)
 app.include_router(like_router)
 app.include_router(user_router)
+app.include_router(image_router)
 
 
 

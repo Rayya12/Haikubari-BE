@@ -20,12 +20,15 @@ async def getMe(session:AsyncSession = Depends(get_async_session),user = Depends
     
     return {
         "username" : selected_user.username,
+        "email": selected_user.email,
         "photo_url" : selected_user.photo_url,
         "file_name" : selected_user.file_name,
         "file_type" : selected_user.file_type,
         "bio": selected_user.bio,
         "age": selected_user.age,
-        "address" : selected_user.address
+        "address" : selected_user.address,
+        "is_verified":selected_user.is_verified,
+        "role" : selected_user.role
     }
     
 @router.patch("/me")
@@ -58,3 +61,7 @@ async def patchme(userUpdate:UserUpdate,session:AsyncSession = Depends(get_async
         selected_user.address = userUpdate.address
         
     await session.commit()
+    await session.refresh(selected_user)
+    
+    return selected_user
+    
