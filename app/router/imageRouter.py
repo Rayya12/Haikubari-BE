@@ -13,12 +13,10 @@ router = APIRouter(prefix="/imagekit",tags=["imagekit"])
 @router.get("/auth")
 async def imagekit_auth(session:AsyncSession = Depends(get_async_session),user=Depends(current_verified_user)):
     imagekit = ImageKit(
-        private_key= os.getenv("IMAGE_KIT_PRIVATE_KEY"),
-        public_key = os.getenv("IMAGE_KIT_PUBLIC_KEY"),
-        url_endpoint = os.getenv("IMAGE_KIT_URL_ENDPOINT")
+        private_key= os.getenv("IMAGE_KIT_PRIVATE_KEY")
     )
     
-    auth = imagekit.get_authentication_parameters()
+    auth = imagekit.helper.get_authentication_parameters()
     
     return {
         **auth,
