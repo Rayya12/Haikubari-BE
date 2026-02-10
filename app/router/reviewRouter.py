@@ -4,6 +4,7 @@ from app.schema.ReviewSchema import createReview
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.model.db import get_async_session,Review
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 
 router = APIRouter(prefix="/reviews",tags=["reviews"])
@@ -29,7 +30,7 @@ async def getReviewbyId(id:str,user = Depends(current_verified_user),session:Asy
     if not (user.role == "common"):
         raise HTTPException(status_code=403,detail="普通しか使いません")
     
-    result = await session.execute(select(Review).where(Review.haiku_id == id))
+    result = await session.execute(select(Review).options(selectinload(Review.user)).where(Review.haiku_id == id))
     data = result.scalars().all()
     
     return {

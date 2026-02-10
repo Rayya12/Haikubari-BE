@@ -5,6 +5,7 @@ from app.model.db import Haiku, get_async_session,Like
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
 from uuid import UUID
+from sqlalchemy.orm import selectinload
 
 
 
@@ -136,12 +137,13 @@ async def get_haiku_with_id(id :str,session:AsyncSession = Depends(get_async_ses
     if not user.role == "common":
         raise HTTPException(status_code=403,detail="普通役しか使えません")
     
-    result = await session.scalar(select(Haiku).where(Haiku.id == id))
+    result = await session.scalar(select(Haiku).options(selectinload(Haiku.user)).where(Haiku.id == id))
     if not result:
         raise HTTPException(status_code=404, detail="俳句が見つかりません")
 
     return {
         "haiku" : result,
+        "user" : result.user,
         "isMine" : result.user_id == user.id
     }
 
