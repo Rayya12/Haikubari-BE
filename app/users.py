@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 from app.model.db import SQLAlchemyUserDatabase
 from app.model.db import get_user_db,User
+from app.service.gmail_sender import send_token
 
 load_dotenv()
 SECRET = os.getenv("SECRET")
@@ -18,6 +19,10 @@ SECRET = os.getenv("SECRET")
 class UserManager(UUIDIDMixin,BaseUserManager[User,uuid.UUID]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
+    
+    async def on_after_forgot_password(self, user, token, request = None):
+        send_token(user.email,token)
+        
     
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)

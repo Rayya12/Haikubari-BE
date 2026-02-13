@@ -28,12 +28,30 @@ def send_otp_email(to_email: str, otp_code: str):
     msg = EmailMessage()
     msg["To"] = to_email
     msg["From"] = os.getenv("GMAIL_SENDER")
-    msg["Subject"] = "Kode OTP Haikubari"
+    msg["Subject"] = "俳句張りのOTPコード"
     msg.set_content(
-        f"Kode OTP kamu: {otp_code}\n"
-        f"Berlaku {int(os.getenv('OTP_TTL_SECONDS','600'))//60} menit.\n"
-        f"Kalau kamu tidak merasa minta OTP, abaikan email ini."
+        f"あなたのOTPは: {otp_code}\n"
+        f"このOTPは {int(os.getenv('OTP_TTL_SECONDS','600'))//60}分以内で使えます.\n"
+        f"もし、このOTPを申し込まない場合、無視してください."
     )
 
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw}).execute()
+
+
+def send_token(to_email,token:str):
+    service = _gmail_service()
+    
+    msg = EmailMessage()
+    msg["to"] = to_email
+    msg["From"] = os.getenv("GMAIL_SENDER")
+    msg["Subject"] = "パスワード忘れ確認"
+    
+    msg.set_content(
+        f"俳句張りでパスワードをお忘れ場合、このOTPを入力してください：\n"
+        f"{token}\n"
+        f"もし、パスワードが大丈夫だとしたら、このメールを無視してください."
+    )
+    
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     service.users().messages().send(userId="me", body={"raw": raw}).execute()

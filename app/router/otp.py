@@ -33,7 +33,7 @@ async def request_otp(body: OTPRequestBody, session: AsyncSession = Depends(get_
         return {"ok": True}
 
     otp = generate_otp()
-    await create_otp_for_user(session, user.id, otp)
+    await create_otp_for_user(session,user.id, otp)
 
     try:
         send_otp_email(user.email, otp)
