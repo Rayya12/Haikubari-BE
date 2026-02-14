@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException,Query
 from app.users import current_verified_user
 from app.schema.haikuSchema import HaikuPost
-from app.model.db import Haiku, get_async_session,Like
+from app.model.db import Haiku, get_async_session,Like,Review
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
 from uuid import UUID
@@ -254,7 +254,7 @@ async def deleteHaiku(id:UUID,session:AsyncSession = Depends(get_async_session),
     }
     
     
-@router.get("/all/like")
+@router.get("/all/topLike")
 async def getAllWithLike(session : AsyncSession = Depends(get_async_session), user = Depends(current_active_watcher), sort: str = Query("desc",regex="^(asc|desc)$")):
     if not user.role == "watcher":
         raise HTTPException(status_code=403,detail="普通の役はこの機能を使えません")
@@ -271,12 +271,37 @@ async def getAllWithLike(session : AsyncSession = Depends(get_async_session), us
     
     listTitleAndLike = []
     for item in items:
-        listTitleAndLike.append((item.title,item.likes))
+        listTitleAndLike.append((item.id,item.title,item.likes))
         
     
     return {
         "titleAndLikes" : listTitleAndLike
     }
+    
+@router.get("/all/topReview")
+async def getAllWithLike(session : AsyncSession = Depends(get_async_session), user = Depends(current_active_watcher), sort: str = Query("desc",regex="^(asc|desc)$")):
+    if not user.role == "watcher":
+        raise HTTPException(status_code=403,detail="普通の役はこの機能を使えません")
+    if user.status == "pending":
+        raise HTTPException(status_code=403,detail="まだアドミンに肯定されません、また後程お待ちください")
+    if user.status == "rejected":
+        raise HTTPException(status_code=403,detail="あなたのアカウントは、拒否されます、お詳しいことは、アドミンに申し込んでください")
+    
+    sort_fn = desc if sort == "desc" else asc
+    
+    response = await session.execute(select(Haiku.id,Haiku.title,func.count(Review.id).label("review_count"))
+                                     .outerjoin(Review,Review.haiku_id == Haiku.id)
+                                     .group_by(Haiku.id,Haiku.title)
+                                     .order_by(sort_fn(func.count(Review.id)))
+                                     .limit(5)
+                                     )
+    
+    rows = response.all()
+    
+    return [
+        {"id": r.id, "title": r.title, "review_count": r.review_count}
+        for r in rows
+    ]
     
     
     
