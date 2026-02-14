@@ -5,6 +5,7 @@ from app.model.db import Haiku, get_async_session,Like
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
 from uuid import UUID
+from app.core.dependencies import current_active_watcher
 from sqlalchemy.orm import selectinload
 
 
@@ -51,7 +52,7 @@ async def get_all_haiku(session:AsyncSession = Depends(get_async_session),user=D
     sort_map = {
         "created_at":Haiku.created_at,
             "likes":Haiku.likes
-        }
+    }
         
     sort_columns = sort_map.get(sort)
     order_fn = desc if order == "desc" else asc
@@ -251,6 +252,36 @@ async def deleteHaiku(id:UUID,session:AsyncSession = Depends(get_async_session),
     return {
         "ok":True
     }
+    
+    
+@router.get("/all/like")
+async def getAllWithLike(session : AsyncSession = Depends(get_async_session), user = Depends(current_active_watcher), sort: str = Query("desc",regex="^(asc|desc)$")):
+    if not user.role == "watcher":
+        raise HTTPException(status_code=403,detail="普通の役はこの機能を使えません")
+    if not user.status == "pending":
+        raise HTTPException(status_code=403,detail="まだアドミンに肯定されません、また後程お待ちください")
+    if not user.status == "rejected":
+        raise HTTPException(status_code=403,detail="あなたのアカウントは、拒否されます、お詳しいことは、アドミンに申し込んでください")
+    
+    sort_order = desc if sort == "desc" else asc
+    
+    response = await session.execute(select(Haiku).order_by(Haiku.likes(sort_order)))
+    
+    items = response.scalars().all()
+    
+    listTitleAndLike = []
+    for item in items:
+        listTitleAndLike.append((item.title,item.likes))
+        
+    
+    return {
+        "titleAndLikes" : listTitleAndLike
+    }
+    
+    
+    
+    
+    
     
         
     
