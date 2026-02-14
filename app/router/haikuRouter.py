@@ -274,9 +274,9 @@ async def getAllWithLike(session : AsyncSession = Depends(get_async_session), us
         listTitleAndLike.append((item.id,item.title,item.likes))
         
     
-    return {
-        "titleAndLikes" : listTitleAndLike
-    }
+    return [
+        {"id":i[0], "title":i[1], "likes" : i[2]} for i in listTitleAndLike
+    ]
     
 @router.get("/all/topReview")
 async def getAllWithLike(session : AsyncSession = Depends(get_async_session), user = Depends(current_active_watcher), sort: str = Query("desc",regex="^(asc|desc)$")):
