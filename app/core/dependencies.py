@@ -13,3 +13,13 @@ async def current_active_watcher(
             detail=f"ユーザーのステータスはただいま{str(user.status)[12:]}です、お詳しいことはアドミンに申し込んでください"
         )
     return user
+
+async def current_active_admin(
+    user: User = Depends(current_user)
+):
+    if user.status != "accepted":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"ユーザーのステータスはただいま{str(user.status)[12:]}です、お詳しいことはアドミンに申し込んでください"
+        )
+    return user

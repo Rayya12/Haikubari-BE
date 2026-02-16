@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.model.db import get_async_session,User
 from app.users import current_verified_user, current_active_user
@@ -64,4 +64,17 @@ async def patchme(userUpdate:UserUpdate,session:AsyncSession = Depends(get_async
     await session.refresh(selected_user)
     
     return selected_user
+
+@router.get("/watchers")
+async def getWatchers(session:AsyncSession = Depends(get_async_session),user = Depends(current_verified_user)):
+    if (user.role != "admin"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN,detail="アドミンしかこの機能を使えません")
+    
+    response = await session.execute(select(User).where(User.role == "watcher"))
+    watchers = response.scalars().all()
+    
+    return watchers
+    
+    
+    
     
