@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Literal
+import uuid
 
 
 class UserUpdate(BaseModel):
@@ -10,3 +11,7 @@ class UserUpdate(BaseModel):
     bio : str | None
     age: int = Field(default=1,ge=1)
     address : str | None
+    
+class ChangeStatus(BaseModel):
+    id : uuid.UUID
+    status : Literal["pending","suspended","accepted"]
