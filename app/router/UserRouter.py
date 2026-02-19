@@ -1,9 +1,10 @@
-from fastapi import APIRouter,Depends,HTTPException,status
+from fastapi import APIRouter,Depends,HTTPException,status,Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.model.db import get_async_session,User
 from app.users import current_verified_user, current_active_user
 from sqlalchemy import select
 from app.schema.UserSchema import UserUpdate,ChangeStatus
+from app.service.gmail_sender import send_status_change_announcement
 
 
 
@@ -67,11 +68,18 @@ async def patchme(userUpdate:UserUpdate,session:AsyncSession = Depends(get_async
     return selected_user
 
 @router.get("/watchers")
-async def getWatchers(session:AsyncSession = Depends(get_async_session),user = Depends(current_verified_user)):
+async def getWatchers(q: str = Query(None,description="ユーサネームで探す"),session:AsyncSession = Depends(get_async_session),user = Depends(current_verified_user)):
     if (user.role != "admin"):
         raise HTTPException(status.HTTP_403_FORBIDDEN,detail="アドミンしかこの機能を使えません")
     
-    response = await session.execute(select(User).where(User.role == "watcher"))
+    
+    
+    conditions = [User.role == "watcher"]
+    
+    if q:
+        conditions.append(User.username.ilike(f"%{q}%"))
+    
+    response = await session.execute(select(User).where(*conditions))
     watchers = response.scalars().all()
     
     return {
@@ -93,6 +101,7 @@ async def changeRoleWatcher(changeStatus:ChangeStatus,session: AsyncSession = De
     await session.commit()
     await session.refresh(selected_watcher)
     
+    send_status_change_announcement(to_email=changeStatus.email, status=selected_watcher.status)
     
     return {
         "ok": True

@@ -55,3 +55,21 @@ def send_token(to_email,token:str):
     
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    
+
+def send_status_change_announcement(to_email,status:str):
+    service = _gmail_service()
+    
+    msg = EmailMessage()
+    msg["to"] = to_email
+    msg["From"] = os.getenv("GMAIL_SENDER")
+    msg["Subject"] = "ステータス変化知らせ"
+    
+    msg.set_content(
+        f"あなたのアカウントのステータスは{status}になりました\n"
+        f"また、アカウントのステータスについてお聞きしたいことがあれば\n"
+        f"このメールにお返事してください"
+    )
+    
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw}).execute()

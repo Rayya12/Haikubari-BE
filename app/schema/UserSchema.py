@@ -14,4 +14,5 @@ class UserUpdate(BaseModel):
     
 class ChangeStatus(BaseModel):
     id : uuid.UUID
+    email :str
     status : Literal["pending","suspended","accepted"]
