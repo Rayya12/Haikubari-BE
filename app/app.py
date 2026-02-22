@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.schema.authSchema import UserRead, UserCreate, UserUpdate
 from app.users import auth_backend, current_active_user,fastapi_users
 from app.router.otp import router as otp_router
@@ -9,6 +10,7 @@ from app.router.likeRouter import router as like_router
 from app.router.UserRouter import router as user_router
 from app.router.imageRouter import router as image_router
 
+origins = ["*"]
 
 app = FastAPI()
 app.include_router(fastapi_users.get_auth_router(auth_backend),prefix='/auth/jwt',tags=["auth"])
@@ -23,9 +25,13 @@ app.include_router(like_router)
 app.include_router(user_router)
 app.include_router(image_router)
 
-
-
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def read_root():

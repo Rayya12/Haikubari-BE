@@ -30,7 +30,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     age = Column(Integer, nullable=True)
     address = Column(String, nullable=True)
     
-    likestable = relationship("Like",back_populates="users",cascade="all, delete-orphan",passive_deletes=True)
+    likestable = relationship("Like",back_populates="user",cascade="all, delete-orphan",passive_deletes=True)
 
     haikus = relationship(
         "Haiku",
