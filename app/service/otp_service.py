@@ -2,13 +2,11 @@ import os, secrets, hmac, hashlib
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.model.db import OTP
-import dotenv
+from app.model.otp import OTP
+from app.core.settings import settings
 
-dotenv.load_dotenv()
-
-OTP_TTL_SECONDS = int(os.getenv("OTP_TTL_SECONDS", "600"))
-OTP_PEPPER = os.getenv("OTP_PEPPER", os.getenv("SECRET", "change-me"))  # minimal pakai SECRET
+OTP_TTL_SECONDS = settings.OTP_TTL_SECONDS
+OTP_PEPPER = settings.OTP_SECRET
 
 def generate_otp() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"

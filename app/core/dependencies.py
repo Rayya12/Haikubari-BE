@@ -1,7 +1,7 @@
 # app/core/dependencies.py
 
 from fastapi import Depends, HTTPException, status
-from app.model.db import User
+from app.model.user import User
 from app.users import current_user
 
 async def current_active_watcher(

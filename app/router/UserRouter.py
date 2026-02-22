@@ -1,6 +1,7 @@
 from fastapi import APIRouter,Depends,HTTPException,status,Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.model.db import get_async_session,User
+from app.model.user import User
+from app.database.db import get_async_session
 from app.users import current_verified_user, current_active_user
 from sqlalchemy import select
 from app.schema.UserSchema import UserUpdate,ChangeStatus

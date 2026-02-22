@@ -3,7 +3,8 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select,delete
 
-from app.model.db import get_async_session, User
+from app.database.db import get_async_session
+from app.model.user import User
 from app.service.otp_service import generate_otp, create_otp_for_user, verify_otp_for_user
 from app.service.gmail_sender import send_otp_email
 

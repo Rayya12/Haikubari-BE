@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends,HTTPException,Query
 from app.users import current_verified_user
 from app.schema.ReviewSchema import createReview
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.model.db import get_async_session,Review
+from app.model.review import Review
+from app.database.db import get_async_session
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 

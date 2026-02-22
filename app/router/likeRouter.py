@@ -1,5 +1,6 @@
 from fastapi import APIRouter,Depends,HTTPException
-from app.model.db import get_async_session,Like
+from app.database.db import get_async_session
+from app.model.like import Like
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.users import current_verified_user
 from sqlalchemy import select

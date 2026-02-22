@@ -9,8 +9,8 @@ from fastapi_users.authentication import (
 )
 import os
 from dotenv import load_dotenv
-from app.model.db import SQLAlchemyUserDatabase
-from app.model.db import get_user_db,User
+from app.database.user_db import SQLAlchemyUserDatabase,get_user_db
+from app.model.user import User
 from app.service.gmail_sender import send_token
 
 load_dotenv()

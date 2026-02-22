@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException,Query
 from app.users import current_verified_user
 from app.schema.haikuSchema import HaikuPost
-from app.model.db import Haiku, get_async_session,Like,Review
+from app.database.db import get_async_session
+from app.model.haiku import Haiku
+from app.model.like import Like
+from app.model.review import Review
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select,func,asc,desc
 from uuid import UUID

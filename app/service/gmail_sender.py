@@ -2,15 +2,12 @@ import os, base64
 from email.message import EmailMessage
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-import dotenv
-
-
-dotenv.load_dotenv()
+from app.core.settings import settings
 
 def _gmail_service():
-    rt = os.getenv("GMAIL_REFRESH_TOKEN")
-    cid = os.getenv("GMAIL_CLIENT_ID")
-    cs = os.getenv("GMAIL_CLIENT_SECRET")
+    rt = settings.GMAIL_REFRESH_TOKEN
+    cid = settings.GMAIL_CLIENT_ID
+    cs = settings.GMAIL_CLIENT_SECRET
 
     creds = Credentials(
         token=None,
