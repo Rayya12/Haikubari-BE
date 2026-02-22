@@ -29,7 +29,7 @@ async def create_otp_for_user(session: AsyncSession, user_id, otp_code: str) -> 
     rec = OTP(
         user_id=user_id,
         code=otp_digest(str(user_id), otp_code),   # simpan digest, bukan OTP asli
-        expired_at=now + timedelta(seconds=OTP_TTL_SECONDS),
+        expired_at=now + timedelta(seconds=int(OTP_TTL_SECONDS)),
     )
     session.add(rec)
     await session.commit()
