@@ -31,7 +31,8 @@ async def getMe(session:AsyncSession = Depends(get_async_session),user = Depends
         "age": selected_user.age,
         "address" : selected_user.address,
         "is_verified":selected_user.is_verified,
-        "role" : selected_user.role
+        "role" : selected_user.role,
+        "status" : selected_user.status
     }
     
 @router.patch("/me")
